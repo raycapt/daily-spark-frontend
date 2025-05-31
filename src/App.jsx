@@ -17,7 +17,7 @@ function Home() {
 function ParentDashboard() {
   const [form, setForm] = useState({
     id: "",
-    user_id: "",
+    user_id: "child1",
     name: "",
     description: "",
     points: 1,
@@ -26,53 +26,56 @@ function ParentDashboard() {
     days_active: [],
   });
 
+  const childOptions = ["child1", "child2", "child3"];
+  const generateId = () => `task-${Date.now()}`;
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === "days_active") {
-      const days = form.days_active.includes(value)
+      const updated = form.days_active.includes(value)
         ? form.days_active.filter((d) => d !== value)
         : [...form.days_active, value];
-      setForm({ ...form, days_active: days });
+      setForm({ ...form, days_active: updated });
     } else {
-      setForm({
-        ...form,
-        [name]: type === "checkbox" ? checked : value,
-      });
+      setForm({ ...form, [name]: type === "checkbox" ? checked : value });
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const task = { ...form, id: generateId() };
+
     fetch("https://daily-spark-backend.onrender.com/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(task),
     })
-      .then((res) => res.json())
-      .then((data) => alert("Task added successfully!"))
-      .catch((err) => alert("Failed to add task"));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(() => alert("Task added successfully!"))
+      .catch(() => alert("Failed to add task"));
   };
 
   return (
     <div className="p-4 max-w-xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Assign a New Task</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="id"
-          placeholder="Task ID"
-          className="w-full border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
+
+        <select
           name="user_id"
-          placeholder="Child ID"
           className="w-full border p-2 rounded"
           onChange={handleChange}
-          required
-        />
+          value={form.user_id}
+        >
+          {childOptions.map((child) => (
+            <option key={child} value={child}>
+              {child}
+            </option>
+          ))}
+        </select>
+
         <input
           type="text"
           name="name"
@@ -81,24 +84,34 @@ function ParentDashboard() {
           onChange={handleChange}
           required
         />
+
         <textarea
           name="description"
           placeholder="Description"
           className="w-full border p-2 rounded"
           onChange={handleChange}
         ></textarea>
+
         <input
           type="number"
           name="points"
           placeholder="Points"
           className="w-full border p-2 rounded"
           onChange={handleChange}
+          value={form.points}
         />
-        <select name="type" className="w-full border p-2 rounded" onChange={handleChange}>
+
+        <select
+          name="type"
+          className="w-full border p-2 rounded"
+          onChange={handleChange}
+          value={form.type}
+        >
           <option value="yesno">Yes/No</option>
           <option value="mcq">Multiple Choice</option>
           <option value="photo">Photo Upload</option>
         </select>
+
         <label className="block">
           <input
             type="checkbox"
@@ -108,6 +121,7 @@ function ParentDashboard() {
           />{" "}
           Required?
         </label>
+
         <div>
           <p className="font-semibold">Days Active:</p>
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
@@ -122,6 +136,7 @@ function ParentDashboard() {
             </label>
           ))}
         </div>
+
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded"
