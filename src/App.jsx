@@ -134,17 +134,36 @@ function ParentDashboard() {
 }
 
 function ChildDashboard() {
+  const [selectedChild, setSelectedChild] = useState("child1");
   const [tasks, setTasks] = useState([]);
 
-  useEffect(() => {
-    fetch("https://daily-spark-backend.onrender.com/tasks/child1")
+  const fetchTasks = (childId) => {
+    fetch(`https://daily-spark-backend.onrender.com/tasks/${childId}`)
       .then((res) => res.json())
       .then((data) => setTasks(data));
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchTasks(selectedChild);
+  }, [selectedChild]);
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold">Today's Tasks</h2>
+    <div className="p-4 max-w-xl mx-auto">
+      <h2 className="text-xl font-bold mb-4">Today's Tasks</h2>
+
+      <label className="block mb-4">
+        Select Child:
+        <select
+          className="w-full border p-2 mt-1 rounded"
+          value={selectedChild}
+          onChange={(e) => setSelectedChild(e.target.value)}
+        >
+          <option value="child1">Child 1</option>
+          <option value="child2">Child 2</option>
+          <option value="child3">Child 3</option>
+        </select>
+      </label>
+
       <ul className="mt-4 space-y-2">
         {tasks.map((task) => (
           <li key={task.id} className="border p-2 rounded-xl">
